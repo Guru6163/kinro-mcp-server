@@ -1,8 +1,9 @@
 /**
  * Smoke-test Kinro tool handlers without Claude Desktop.
  *
- * Imports compiled handlers from `build/` (run `npm run build` first, or use
- * `npm run test:tools` which builds then runs this file with ts-node).
+ * Handlers are loaded from `build/` (compile first). From repo root:
+ * `npm run build && npx ts-node scripts/test-tools.ts`
+ * Or: `npm run test:tools`
  */
 import { handleCheckCompliance } from "../build/tools/check_compliance.js";
 import { handleExplainPolicy } from "../build/tools/explain_policy.js";

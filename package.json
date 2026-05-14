@@ -6,7 +6,7 @@
   "main": "build/index.js",
   "scripts": {
     "build": "tsc",
-    "test:tools": "npm run build && ts-node --esm scripts/test-tools.ts"
+    "test:tools": "npm run build && ts-node scripts/test-tools.ts"
   },
   "engines": {
     "node": ">=18"

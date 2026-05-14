@@ -1,5 +1,5 @@
 import type { Carrier } from "../types.js";
-import { normalizeStateCode } from "./state_code.js";
+import { normalizeStateCode } from "./compliance_rules.js";
 
 export const CARRIERS: Carrier[] = [
   {

@@ -1,7 +1,20 @@
-import { normalizeStateCode } from "./state_code.js";
+/** Normalize user input to a two-letter USPS state code when possible. */
+export function normalizeStateCode(state: string): string {
+  const trimmed = state.trim().toUpperCase();
+  if (trimmed.length === 2) {
+    return trimmed;
+  }
+  const alias: Record<string, string> = {
+    CALIFORNIA: "CA",
+    FLORIDA: "FL",
+    "NEW YORK": "NY",
+    TEXAS: "TX",
+  };
+  return alias[trimmed] ?? trimmed.slice(0, 2);
+}
 
-/** Phrases that must not appear in regulated sales copy (mock rules). */
-export const UNIVERSAL_BANNED_PHRASES: string[] = [
+/** Phrases that must not appear in regulated sales copy (mock universal rules). */
+export const UNIVERSAL_BANNED_PHRASES: readonly string[] = [
   "guaranteed",
   "best price",
   "cheapest",
@@ -11,18 +24,19 @@ export const UNIVERSAL_BANNED_PHRASES: string[] = [
   "never denied",
 ];
 
-/** Extra banned phrases keyed by two-letter state code. */
-export const STATE_BANNED_PHRASES: Record<string, string[]> = {
-  CA: ["earthquake not covered"],
-  FL: ["flood included"],
-  NY: ["guaranteed approval"],
+/**
+ * State-specific banned phrases (each list includes universal rules plus overlays).
+ * States not listed here fall back to {@link UNIVERSAL_BANNED_PHRASES} only.
+ */
+export const BANNED_PHRASES_BY_STATE: Record<string, readonly string[]> = {
+  CA: [...UNIVERSAL_BANNED_PHRASES, "earthquake not covered"],
+  FL: [...UNIVERSAL_BANNED_PHRASES, "flood included"],
+  NY: [...UNIVERSAL_BANNED_PHRASES, "guaranteed approval"],
 };
-
-export { normalizeStateCode };
 
 /** All phrases to scan for a given jurisdiction (universal + state-specific). */
 export function getBannedPhrasesForState(state: string): string[] {
   const code = normalizeStateCode(state);
-  const extra = STATE_BANNED_PHRASES[code] ?? [];
-  return [...UNIVERSAL_BANNED_PHRASES, ...extra];
+  const list = BANNED_PHRASES_BY_STATE[code];
+  return list ? [...list] : [...UNIVERSAL_BANNED_PHRASES];
 }
