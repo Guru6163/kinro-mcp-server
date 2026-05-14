@@ -17,6 +17,39 @@ function firstZipDigit(zip: string): string | undefined {
   return digits[0];
 }
 
+function recommendedCoverage(
+  coverageType: string,
+  score: number,
+): string {
+  const base = coverageType.trim().toLowerCase();
+  if (score >= 75) {
+    if (base === "auto") {
+      return "auto: 100/300 liability + matching UM/UIM + $500 comp/collision (demo bundle)";
+    }
+    if (base === "renters") {
+      return "renters: HO-4 with $500k umbrella stack (demo bundle)";
+    }
+    if (base === "pet") {
+      return "pet: illness + wellness rider with $10k annual cap (demo)";
+    }
+    return "homeowners: HO-3 replacement cost + water backup endorsement (demo bundle)";
+  }
+  if (score >= 50) {
+    return `${base}: standard admitted-market form with 1% wind/hail deductible (demo)`;
+  }
+  return `${base}: simplified-issue program pending underwriting review (demo)`;
+}
+
+function nextStepFor(score: number): BuyerScore["next_step"] {
+  if (score >= 75) {
+    return "book_demo";
+  }
+  if (score >= 50) {
+    return "self_serve";
+  }
+  return "needs_review";
+}
+
 export function scoreBuyer(input: z.infer<typeof qualifyBuyerInputSchema>): BuyerScore {
   const prior = input.prior_claims ?? 0;
   const value = input.property_value;
@@ -70,13 +103,20 @@ export function scoreBuyer(input: z.infer<typeof qualifyBuyerInputSchema>): Buye
       ? `Score ${score} reflects ${signals.join("; ")} for ${input.coverage_type} in ZIP ${input.zip_code}.`
       : `Score ${score} is baseline for ${input.coverage_type} in ZIP ${input.zip_code} with limited signals.`;
 
-  return { score, tier, reason };
+  return {
+    score,
+    tier,
+    reason,
+    recommended_coverage_type: recommendedCoverage(input.coverage_type, score),
+    next_step: nextStepFor(score),
+    estimated_annual_savings: score * 12,
+  };
 }
 
 export const qualifyBuyerTool = {
   name: "qualify_buyer" as const,
   description:
-    "Score and tier a buyer using Kinro’s heuristic lead model (mock, not credit/CLUE).",
+    "Score and tier a buyer using Kinro’s heuristic demo model (no credit pulls, no external APIs).",
   inputSchema: {
     type: "object" as const,
     properties: {

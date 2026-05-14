@@ -6,7 +6,10 @@
   "main": "build/index.js",
   "scripts": {
     "build": "tsc",
-    "test:tools": "npm run build && ts-node scripts/test-tools.ts"
+    "test:tools": "npm run build && ts-node scripts/test-tools.ts",
+    "start:stdio": "node build/index.js --transport stdio",
+    "start:http": "node build/index.js --transport http",
+    "dev:http": "ts-node src/index.ts --transport http"
   },
   "engines": {
     "node": ">=18"
@@ -17,6 +20,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/express": "^5.0.0",
     "@types/node": "^22.10.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2"

@@ -6,70 +6,60 @@ export const explainPolicyInputSchema = z.object({
   buyer_question: z.string(),
 });
 
-function inferProductLine(policyId: string): "homeowners" | "auto" | "other" {
-  const upper = policyId.toUpperCase();
-  if (upper.includes("HO-") || upper.startsWith("HO")) {
-    return "homeowners";
+function buildFromTemplate(
+  templateIndex: 0 | 1 | 2,
+  policyId: string,
+  buyerQuestion: string,
+): string {
+  if (templateIndex === 0) {
+    return (
+      `Thanks for walking through policy ${policyId} with me. ` +
+      `When you asked, “${buyerQuestion},” the short answer is that your dec page controls what’s covered, and anything not listed there usually needs an endorsement. ` +
+      `Most HO-3 forms cover sudden plumbing leaks but not long-term seepage, so if water is involved we’ll want photos and a timeline. ` +
+      `I’m happy to read the exact endorsement language with you line-by-line so there’s no surprises at claim time.`
+    );
   }
-  if (upper.includes("AU-") || upper.includes("AUTO") || upper.startsWith("PPA")) {
-    return "auto";
+  if (templateIndex === 1) {
+    return (
+      `On ${policyId}, I’m going to answer “${buyerQuestion}” the way a field adjuster would: first we confirm cause of loss, then we match it to a covered peril in the contract. ` +
+      `Wind-driven rain versus rising water matters a lot—one may be covered subject to deductible, the other often requires separate flood coverage. ` +
+      `I’ll note any sub-limits for mold or water backup so you can decide if an endorsement is worth it. ` +
+      `Nothing here changes your actual policy until underwriting approves a change—we’re just translating the manual into plain English.`
+    );
   }
-  return "other";
+  return (
+    `I love that question about “${buyerQuestion}” because it shows you’re reading ${policyId} closely. ` +
+    `In practice, carriers look at whether the damage is sudden and accidental, whether you mitigated further loss, and whether the peril is excluded on the schedule. ` +
+    `If you’re worried about a gray area, we can submit a hypothetical to the carrier’s underwriting desk before you file a claim. ` +
+    `Either way, you’re already doing the right thing by asking before you have a loss on the kitchen floor.`
+  );
 }
 
 export function buildPolicyExplanation(
   policyId: string,
   buyerQuestion: string,
 ): PolicyExplanation {
-  const line = inferProductLine(policyId);
-
-  const product_summary =
-    line === "homeowners"
-      ? "HO-3-style homeowners form: open perils on the dwelling with named-peril personal property."
-      : line === "auto"
-        ? "Personal auto policy with split liability, UM/UIM, and optional comp/collision."
-        : "Bundled personal-lines policy (mock): review declarations for exact form series.";
-
-  const coverage_highlights =
-    line === "homeowners"
-      ? [
-          "Dwelling coverage with replacement-cost option where selected.",
-          "Personal liability and medical payments to others.",
-          "Loss of use when the home is uninhabitable due to a covered loss.",
-        ]
-      : line === "auto"
-        ? [
-            "Bodily injury and property damage liability limits per declarations.",
-            "Uninsured/underinsured motorist where elected.",
-            "Optional physical damage (comprehensive/collision) with deductibles shown.",
-          ]
-        : [
-            "Refer to the declarations page for policy form numbers and endorsements.",
-            "Coverage limits and deductibles are itemized per scheduled property/vehicles.",
-          ];
-
-  const buyer_answer =
-    line === "homeowners"
-      ? `On “${buyerQuestion}”: flood and earthquake are typically excluded unless purchased as separate endorsements or policies; mudflow and sewer backup may also be limited unless endorsed.`
-      : line === "auto"
-        ? `On “${buyerQuestion}”: business use, rideshare, and racing are commonly excluded or require endorsements; confirm garaging ZIP and listed drivers match actual use.`
-        : `On “${buyerQuestion}”: Kinro will map your question to the governing form in ${policyId} and confirm any endorsements that modify base coverage.`;
+  const template_index = (policyId.length % 3) as 0 | 1 | 2;
+  const agent_narrative = buildFromTemplate(
+    template_index,
+    policyId,
+    buyerQuestion,
+  );
 
   return {
     policy_id: policyId,
     buyer_question: buyerQuestion,
-    product_summary,
-    coverage_highlights,
-    buyer_answer,
+    template_index,
+    agent_narrative,
     disclaimer:
-      "Mock explanation for sales enablement only — not underwriting, not legal advice, and not a coverage determination.",
+      "Demo script for sales training — not a coverage determination, not legal advice, and not a substitute for your carrier’s filed forms.",
   };
 }
 
 export const explainPolicyTool = {
   name: "explain_policy" as const,
   description:
-    "Produce a structured plain-English policy explanation tied to a policy id and buyer question (mock).",
+    "Return a 3–4 sentence licensed-agent-style explanation (demo template) for a policy id and buyer question.",
   inputSchema: {
     type: "object" as const,
     properties: {

@@ -1,106 +1,131 @@
-import type { Carrier } from "../types.js";
 import { normalizeStateCode } from "./compliance_rules.js";
 
-export const CARRIERS: Carrier[] = [
+/** Hardcoded Kinro demo carrier panel (no external APIs). */
+export interface MockCarrier {
+  id: string;
+  name: string;
+  am_best: string;
+  base_premium: number;
+  states: string[];
+  logo: string;
+  /** Coverage lines this carrier is mocked to write in the demo. */
+  supported_coverage: string[];
+}
+
+export const MOCK_CARRIERS: MockCarrier[] = [
   {
-    id: "sf-001",
+    id: "sf",
     name: "State Farm",
-    am_best_rating: "A+",
-    supported_states: ["CA", "TX", "FL", "IL", "NY", "PA", "OH", "GA", "NC", "MI"],
+    am_best: "A++",
+    base_premium: 120,
+    states: ["CA", "TX", "FL", "NY", "IL"],
+    logo: "https://logo.clearbit.com/statefarm.com",
     supported_coverage: ["homeowners", "auto", "renters"],
-    base_premium: 118,
   },
   {
-    id: "al-002",
-    name: "Allstate",
-    am_best_rating: "A+",
-    supported_states: ["CA", "TX", "FL", "AZ", "WA", "CO", "NJ", "VA", "TN", "MO"],
-    supported_coverage: ["homeowners", "auto", "renters", "pet"],
-    base_premium: 126,
-  },
-  {
-    id: "pr-003",
-    name: "Progressive",
-    am_best_rating: "A+",
-    supported_states: ["TX", "FL", "OH", "PA", "IN", "WI", "MN", "OR", "SC", "KY"],
-    supported_coverage: ["auto", "renters", "pet"],
-    base_premium: 98,
-  },
-  {
-    id: "lm-004",
-    name: "Liberty Mutual",
-    am_best_rating: "A",
-    supported_states: ["CA", "MA", "NH", "CT", "WA", "OR", "UT", "NV", "MD", "DC"],
-    supported_coverage: ["homeowners", "auto", "renters"],
-    base_premium: 132,
-  },
-  {
-    id: "fm-005",
-    name: "Farmers Insurance",
-    am_best_rating: "A",
-    supported_states: ["CA", "TX", "AZ", "OK", "KS", "NE", "IA", "AR", "LA", "NM"],
-    supported_coverage: ["homeowners", "auto", "renters", "pet"],
-    base_premium: 121,
-  },
-  {
-    id: "us-006",
-    name: "USAA",
-    am_best_rating: "A+",
-    supported_states: ["TX", "FL", "CA", "VA", "CO", "WA", "GA", "NC", "AZ", "NV"],
-    supported_coverage: ["homeowners", "auto", "renters"],
-    base_premium: 105,
-  },
-  {
-    id: "tv-007",
-    name: "Travelers",
-    am_best_rating: "A+",
-    supported_states: ["NY", "CT", "NJ", "PA", "MA", "IL", "MN", "WI", "MI", "IN"],
-    supported_coverage: ["homeowners", "auto", "renters"],
-    base_premium: 129,
-  },
-  {
-    id: "nw-008",
-    name: "Nationwide",
-    am_best_rating: "A+",
-    supported_states: ["OH", "PA", "NC", "SC", "TN", "KY", "WV", "VA", "MD", "DE"],
-    supported_coverage: ["homeowners", "auto", "pet"],
-    base_premium: 115,
-  },
-  {
-    id: "cb-009",
-    name: "Chubb",
-    am_best_rating: "A+",
-    supported_states: ["NY", "CA", "FL", "TX", "IL", "NJ", "CT", "MA", "PA", "GA"],
-    supported_coverage: ["homeowners", "auto", "renters"],
-    base_premium: 168,
-  },
-  {
-    id: "lm-010",
+    id: "lm",
     name: "Lemonade",
-    am_best_rating: "A-",
-    supported_states: ["NY", "CA", "TX", "IL", "NJ", "PA", "OH", "GA", "CO", "TN"],
+    am_best: "A",
+    base_premium: 85,
+    states: ["CA", "TX", "NY", "NJ", "IL"],
+    logo: "https://logo.clearbit.com/lemonade.com",
     supported_coverage: ["homeowners", "renters", "pet"],
-    base_premium: 88,
   },
   {
-    id: "am-011",
-    name: "American Family",
-    am_best_rating: "A",
-    supported_states: ["WI", "MN", "IA", "MO", "NE", "KS", "SD", "ND", "IN", "OH"],
-    supported_coverage: ["homeowners", "auto", "renters"],
-    base_premium: 112,
+    id: "al",
+    name: "Allstate",
+    am_best: "A+",
+    base_premium: 135,
+    states: ["CA", "TX", "FL", "NY", "OH"],
+    logo: "https://logo.clearbit.com/allstate.com",
+    supported_coverage: ["homeowners", "auto", "renters", "pet"],
+  },
+  {
+    id: "pr",
+    name: "Progressive",
+    am_best: "A+",
+    base_premium: 110,
+    states: ["CA", "TX", "FL", "NY", "PA"],
+    logo: "https://logo.clearbit.com/progressive.com",
+    supported_coverage: ["auto", "renters", "pet"],
+  },
+  {
+    id: "gk",
+    name: "GEICO",
+    am_best: "A++",
+    base_premium: 95,
+    states: ["CA", "TX", "FL", "NY", "VA"],
+    logo: "https://logo.clearbit.com/geico.com",
+    supported_coverage: ["auto", "renters"],
+  },
+  {
+    id: "hp",
+    name: "Hippo",
+    am_best: "A-",
+    base_premium: 100,
+    states: ["CA", "TX", "AZ", "CO", "NV"],
+    logo: "https://logo.clearbit.com/hippo.com",
+    supported_coverage: ["homeowners", "renters"],
+  },
+  {
+    id: "rt",
+    name: "Root Insurance",
+    am_best: "B+",
+    base_premium: 78,
+    states: ["TX", "OH", "IL", "PA", "AZ"],
+    logo: "https://logo.clearbit.com/joinroot.com",
+    supported_coverage: ["auto", "renters"],
+  },
+  {
+    id: "op",
+    name: "Openly",
+    am_best: "A",
+    base_premium: 115,
+    states: ["CA", "FL", "TX", "GA", "NC"],
+    logo: "https://logo.clearbit.com/openly.com",
+    supported_coverage: ["homeowners"],
+  },
+  {
+    id: "kn",
+    name: "Kin Insurance",
+    am_best: "A-",
+    base_premium: 90,
+    states: ["FL", "LA", "SC", "AL", "MS"],
+    logo: "https://logo.clearbit.com/kininsurance.com",
+    supported_coverage: ["homeowners", "renters"],
+  },
+  {
+    id: "nw",
+    name: "Nationwide",
+    am_best: "A+",
+    base_premium: 125,
+    states: ["CA", "TX", "FL", "NY", "OH"],
+    logo: "https://logo.clearbit.com/nationwide.com",
+    supported_coverage: ["homeowners", "auto", "pet"],
   },
 ];
+
+const NATIONAL_FALLBACK_NOTE =
+  "Showing national carriers — state availability may vary";
+
+export function filterMockCarriers(
+  stateInput: string,
+  coverageType: string,
+): { matches: MockCarrier[]; usedFallback: boolean } {
+  const code = normalizeStateCode(stateInput);
+  const cov = coverageType.trim().toLowerCase();
+  const matches = MOCK_CARRIERS.filter(
+    (c) => c.states.includes(code) && c.supported_coverage.includes(cov),
+  );
+  if (matches.length > 0) {
+    return { matches, usedFallback: false };
+  }
+  return { matches: MOCK_CARRIERS.slice(0, 3), usedFallback: true };
+}
 
 export function carriersInMarket(
   stateInput: string,
   coverageType: string,
-): Carrier[] {
-  const code = normalizeStateCode(stateInput);
-  const cov = coverageType.trim().toLowerCase();
-  return CARRIERS.filter(
-    (c) =>
-      c.supported_states.includes(code) && c.supported_coverage.includes(cov),
-  );
+): MockCarrier[] {
+  return filterMockCarriers(stateInput, coverageType).matches;
 }
-

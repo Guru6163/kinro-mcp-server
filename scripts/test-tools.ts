@@ -7,6 +7,7 @@
  */
 import { handleCheckCompliance } from "../build/tools/check_compliance.js";
 import { handleExplainPolicy } from "../build/tools/explain_policy.js";
+import { handleGetDemoConversation } from "../build/tools/get_demo_conversation.js";
 import { handleGetQuote } from "../build/tools/get_quote.js";
 import { handleListCarriers } from "../build/tools/list_carriers.js";
 import { handleQualifyBuyer } from "../build/tools/qualify_buyer.js";
@@ -56,6 +57,19 @@ printSection(
     state: "FL",
     coverage_type: "auto",
   }),
+);
+
+printSection(
+  "list_carriers (fallback state)",
+  handleListCarriers({
+    state: "AK",
+    coverage_type: "homeowners",
+  }),
+);
+
+printSection(
+  "get_demo_conversation (homeowner)",
+  handleGetDemoConversation({ scenario: "homeowner" }),
 );
 
 printSection(

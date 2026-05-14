@@ -23,16 +23,19 @@ export function evaluateCompliance(
     }
   }
 
+  const compliance_score = Math.max(0, 100 - issues.length * 15);
+
   return {
     compliant: issues.length === 0,
     issues,
+    compliance_score,
   };
 }
 
 export const checkComplianceTool = {
   name: "check_compliance" as const,
   description:
-    "Scan sales copy for banned phrases using universal rules plus state-specific overlays (mock).",
+    "Scan sales copy for banned phrases (demo rules) and return a mock compliance score.",
   inputSchema: {
     type: "object" as const,
     properties: {
