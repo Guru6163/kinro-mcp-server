@@ -1,9 +1,12 @@
 import { randomUUID } from "node:crypto";
-import type { Response } from "express";
-import { createMcpExpressApp } from "@modelcontextprotocol/sdk/server/express.js";
+import express, { type Response } from "express";
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
+import {
+  getRequestHostHeader,
+  validateRequestHostMiddleware,
+} from "./http-host-validation.js";
 import {
   createKinroMcpServer,
   KINRO_MCP_VERSION,
@@ -54,7 +57,9 @@ export async function runHttpServer(
   const HOST = options?.host ?? "0.0.0.0";
   const sessions = new Map<string, SessionEntry>();
 
-  const app = createMcpExpressApp({ host: HOST });
+  const app = express();
+  app.use(validateRequestHostMiddleware);
+  app.use(express.json());
 
   app.use((req, res, next) => {
     corsHeaders(res);
@@ -134,11 +139,14 @@ ${toolsHtml}
         entry = sessions.get(sessionId);
       } else if (!sessionId && isInitializeRequest(req.body)) {
         const server = createKinroMcpServer();
+        const hostHeader = getRequestHostHeader(req.headers.host);
         const transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: () => randomUUID(),
           onsessioninitialized: (sid) => {
             sessions.set(sid, { transport, server });
           },
+          enableDnsRebindingProtection: true,
+          allowedHosts: hostHeader ? [hostHeader] : [],
         });
 
         transport.onclose = () => {
