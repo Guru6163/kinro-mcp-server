@@ -1,63 +1,61 @@
-# Kinro MCP
+# Kinro MCP Server
 
-## Demo mode
+**MCP server that exposes Kinro-style insurance demos as tools—quotes, compliance, carriers, and more—for any MCP-capable assistant.**
 
-**Everything runs locally with mock data.** Clone, `npm install`, `npm run build`, then `node build/index.js` — no API keys, no `.env` file, and **no outbound network calls** from the server. Optional `PORT` is only used when you start **HTTP** transport.
-
-The Kinro MCP server powers **Kinro**-style AI insurance agent demos: quotes, policy talk-tracks, compliance screening, carrier panels, lead scoring, and scripted investor conversations.
+[![Node.js](https://img.shields.io/badge/node-%3E%3D20-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![MCP Protocol](https://img.shields.io/badge/MCP-Protocol-111111?style=flat)](https://modelcontextprotocol.io)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 ---
 
-## Prerequisites
+## What is this?
 
-- Node.js 18+
-- npm
+This is an [MCP](https://modelcontextprotocol.io) server that exposes Kinro’s insurance capabilities as **tools** any AI assistant can call. It runs entirely on **mock / offline data**—no live rating APIs or secrets required. It was built as a **demo** for the Founding Engineer role.
 
-## Setup (zero configuration)
+---
 
-```bash
-git clone <this-repo>
-cd kinro-mcp
-npm install
-npm run build
+## Demo
+
+```text
+User (in Claude Desktop)
+  → “I’m in CA, ZIP 94103—give me three homeowners quotes.”
+    → Claude invokes Kinro MCP tool `get_quote`
+      → Kinro MCP Server (this repo)
+        → returns JSON quotes (carrier, premium, limits, …)
+          → Claude shows the options in chat
 ```
 
-Optional: copy `.env.example` to `.env` if you want to override **`PORT`** for HTTP (defaults to **3000**).
+---
 
-## Run
+## Tools
 
-| Mode | Command |
-| --- | --- |
-| **Stdio** (default) | `node build/index.js` or `npm run start:stdio` |
-| **Stdio** (explicit) | `node build/index.js --transport stdio` |
-| **HTTP** | `npm run start:http` (uses `PORT` or 3000) |
+| Tool | Input | What it does |
+| --- | --- | --- |
+| `get_quote` | `state`, `zip_code`, `coverage_type` (`homeowners` \| `auto` \| `renters` \| `pet`) | Returns up to three rated demo quotes with premiums, deductibles, and limits. |
+| `explain_policy` | `policy_id`, `buyer_question` | Returns a plain-English agent-style explanation woven around the buyer’s question. |
+| `check_compliance` | `response_text`, `state` | Scans copy for banned phrases and returns a compliance score and issues list. |
+| `list_carriers` | `state`, `coverage_type` | Lists carriers from the demo panel for that market (with a note when using fallback). |
+| `qualify_buyer` | `zip_code`, `coverage_type`, optional `property_value`, `prior_claims` | Scores the lead and returns tier, recommended coverage bundle, and next-step hints. |
+| `get_demo_conversation` | `scenario` (`homeowner` \| `renter` \| `auto` \| `first_time_buyer`) | Returns a scripted user/agent transcript for stakeholder walkthroughs. |
 
-**Stdio:** logs go to **stderr** only; stdout is reserved for MCP JSON-RPC.
+---
 
-**HTTP:** `POST /mcp` and `GET /mcp` (Streamable HTTP + SSE), `GET /health`, `GET /`. The home page shows a **yellow “DEMO MODE”** banner. CORS allows `*` origin with `POST`, `GET`, `OPTIONS` and `Content-Type` header.
-
-### Quick HTTP checks
+## Quick Start (3 steps only)
 
 ```bash
-npm run start:http
-# other terminal:
-curl -s http://127.0.0.1:3000/health
+git clone https://github.com/<your-org>/kinro-mcp.git && cd kinro-mcp
+npm install && npm run build
+npm test
 ```
 
-## Tools (all mock / offline)
+Optional: copy `.env.example` to `.env` to override **`PORT`** for HTTP transport (defaults to **3000**).
 
-| Tool | What it does (demo) |
-| --- | --- |
-| `get_quote` | Three quotes with ZIP-seeded premiums, deductibles, limits, Clearbit-style logo URLs, `quote_id`, `valid_until`, `estimated_annual`. |
-| `explain_policy` | One of three agent-style templates (chosen from `policy_id` length); 3–4 sentences with the buyer’s question woven in. |
-| `check_compliance` | Banned-phrase scan + **`compliance_score`** (100 minus 15 per issue). |
-| `list_carriers` | Filters the built-in 10-carrier panel; if the state does not match, returns the first three carriers plus an availability **note**. |
-| `qualify_buyer` | Existing score/tier logic plus **`recommended_coverage_type`**, **`next_step`**, **`estimated_annual_savings`**. |
-| `get_demo_conversation` | Returns a scripted `user` / `agent` transcript for **`homeowner`**, **`renter`**, **`auto`**, or **`first_time_buyer`**. A fifth bind-phase script lives in source as `POST_BIND_DEMO_FLOW` in `src/data/mock-conversations.ts`. |
+---
 
-## Claude Desktop — stdio
+## Connect to Claude Desktop
 
-Use the default stdio transport (no flags required):
+After `npm run build`, add this block to your Claude Desktop MCP config (replace the path with the **absolute** path to `build/index.js` on your machine):
 
 ```json
 {
@@ -70,51 +68,47 @@ Use the default stdio transport (no flags required):
 }
 ```
 
-## Claude Desktop — HTTP (Streamable)
+If your config already defines `mcpServers`, merge in only the `"kinro"` entry. Stdio is the default transport; stdout stays reserved for MCP JSON-RPC (logs go to stderr).
 
-Run `npm run start:http`, then point your client’s MCP HTTP entry at `http://127.0.0.1:3000/mcp` (adjust host/port). Exact JSON keys depend on your Claude Desktop version—use the in-app MCP developer docs for **Streamable HTTP** / remote server fields.
+---
 
-## Example prompts (one tool each)
+## Project Structure
 
-1. **Quotes:** “I’m in **CA**, ZIP **94103**, need **homeowners** quotes—show me three options with annual totals.” → `get_quote`
-2. **Policy plain English:** “Explain **HO-94103-001** for a buyer asking whether sewer backup is covered.” → `explain_policy`
-3. **Compliance:** “Scan this pitch for **California**: *We guarantee the cheapest rates and earthquake not covered without saying more.*” → `check_compliance`
-4. **Carrier panel:** “Which carriers write **auto** in **FL** in the Kinro demo panel?” → `list_carriers`
-5. **Lead score:** “Qualify a **homeowners** lead in **80202**, $450k home, **0** prior claims.” → `qualify_buyer`
-6. **Investor demo:** “Show the **`homeowner`** scripted Kinro conversation for a board walkthrough.” → `get_demo_conversation`
-
-## Docker
-
-```bash
-docker build -t kinro-mcp .
-docker run --rm -p 3000:3000 kinro-mcp
-```
-
-No secrets or API configuration required.
-
-## Developer: handler smoke tests
-
-```bash
-npm run test:tools
+```text
+src/
+├── data/
+│   ├── carriers.ts
+│   ├── compliance_rules.ts
+│   └── mock-conversations.ts
+├── tools/
+│   ├── check_compliance.ts
+│   ├── explain_policy.ts
+│   ├── get_demo_conversation.ts
+│   ├── get_quote.ts
+│   ├── list_carriers.ts
+│   └── qualify_buyer.ts
+├── index.ts
+├── kinro_mcp_server.ts
+├── server-http.ts
+├── server-stdio.ts
+└── types.ts
 ```
 
 ---
 
-Paste the following into Claude Desktop’s MCP configuration if you prefer an explicit stdio flag:
+## Why I built this
 
-```json
-{
-  "mcpServers": {
-    "kinro": {
-      "command": "node",
-      "args": [
-        "/ABSOLUTE/PATH/TO/kinro-mcp/build/index.js",
-        "--transport",
-        "stdio"
-      ]
-    }
-  }
-}
-```
+Kinro’s thesis is **“sell everywhere buyers are.”** MCP is a new distribution channel: any AI product that supports MCP can surface insurance workflows through Kinro-style tools. To my knowledge, **no major insurer has shipped a public MCP server yet**—this demo shows what that could look like.
 
-If your config already has `mcpServers`, add only the `"kinro"` entry inside that object.
+---
+
+## Run modes
+
+| Mode | Command |
+| --- | --- |
+| **Stdio** (default) | `npm run start:stdio` or `node build/index.js` |
+| **HTTP** (Streamable HTTP + SSE) | `npm run start:http` — `POST` / `GET` `/mcp`, `GET` `/health` |
+
+For HTTP smoke test: `curl -s http://127.0.0.1:3000/health`
+
+Docker: `docker build -t kinro-mcp .` then `docker run --rm -p 3000:3000 kinro-mcp`

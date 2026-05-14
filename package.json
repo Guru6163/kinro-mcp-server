@@ -1,11 +1,14 @@
 {
-  "name": "kinro-mcp",
-  "version": "1.0.0",
-  "description": "MCP server for Kinro — AI insurance sales agents",
+  "name": "kinro-mcp-server",
+  "version": "0.3.0",
+  "description": "MCP server exposing Kinro insurance capabilities as AI tools",
+  "author": "Your Name",
+  "license": "MIT",
   "type": "module",
   "main": "build/index.js",
   "scripts": {
     "build": "tsc",
+    "test": "npm run test:tools",
     "test:tools": "npm run build && ts-node scripts/test-tools.ts",
     "start:stdio": "node build/index.js --transport stdio",
     "start:http": "node build/index.js --transport http",
@@ -17,7 +20,6 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
     "dotenv": "^16.4.5",
-    "express": "^5.2.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -25,6 +27,5 @@
     "@types/node": "^22.10.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
-  },
-  "private": true
+  }
 }

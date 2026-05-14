@@ -1,3 +1,4 @@
+// Kinro MCP Server — Demo build for Founding Engineer application
 import "dotenv/config";
 
 function getTransport(): "stdio" | "http" {
@@ -12,10 +13,8 @@ function getTransport(): "stdio" | "http" {
 async function main() {
   const mode = getTransport();
   if (mode === "http") {
-    const PORT = process.env.PORT || 3000;
-    const HOST = "0.0.0.0";
     const { runHttpServer } = await import("./server-http.js");
-    await runHttpServer({ port: PORT, host: HOST });
+    await runHttpServer();
   } else {
     const { runStdioServer } = await import("./server-stdio.js");
     await runStdioServer();
