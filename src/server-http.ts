@@ -15,12 +15,26 @@ type SessionEntry = {
   server: Server;
 };
 
-function parsePort(): number {
-  const raw = process.env.PORT;
-  if (!raw) {
-    return 3000;
+export type RunHttpServerOptions = {
+  /** Bind port (Railway sets `process.env.PORT` as a string). */
+  port?: string | number;
+  /** Listen address; Railway requires `0.0.0.0`, not localhost-only. */
+  host?: string;
+};
+
+function normalizeListenPort(value: string | number | undefined): number {
+  if (value === undefined) {
+    const raw = process.env.PORT;
+    if (!raw) {
+      return 3000;
+    }
+    const n = Number.parseInt(raw, 10);
+    return Number.isFinite(n) && n > 0 ? n : 3000;
   }
-  const n = Number.parseInt(raw, 10);
+  if (typeof value === "number") {
+    return Number.isFinite(value) && value > 0 ? value : 3000;
+  }
+  const n = Number.parseInt(value, 10);
   return Number.isFinite(n) && n > 0 ? n : 3000;
 }
 
@@ -33,11 +47,14 @@ function corsHeaders(res: Response): void {
   );
 }
 
-export async function runHttpServer(): Promise<void> {
-  const port = parsePort();
+export async function runHttpServer(
+  options?: RunHttpServerOptions,
+): Promise<void> {
+  const port = normalizeListenPort(options?.port);
+  const HOST = options?.host ?? "0.0.0.0";
   const sessions = new Map<string, SessionEntry>();
 
-  const app = createMcpExpressApp({ host: "0.0.0.0" });
+  const app = createMcpExpressApp({ host: HOST });
 
   app.use((req, res, next) => {
     corsHeaders(res);
@@ -193,9 +210,9 @@ ${toolsHtml}
   });
 
   await new Promise<void>((resolve, reject) => {
-    const httpServer = app.listen(port, "0.0.0.0", () => {
+    const httpServer = app.listen(port, HOST, () => {
       console.error(
-        `Kinro MCP HTTP listening on 0.0.0.0:${port} (POST/GET /mcp, GET /health)`,
+        `Kinro MCP HTTP listening on ${HOST}:${port} (POST/GET /mcp, GET /health)`,
       );
       resolve();
     });

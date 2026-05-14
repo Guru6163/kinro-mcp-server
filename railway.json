@@ -1,0 +1,8 @@
+{
+  "build": { "builder": "NIXPACKS" },
+  "deploy": {
+    "startCommand": "node build/index.js --transport http",
+    "healthcheckPath": "/health",
+    "restartPolicyType": "ON_FAILURE"
+  }
+}

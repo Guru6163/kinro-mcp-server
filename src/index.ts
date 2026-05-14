@@ -12,8 +12,10 @@ function getTransport(): "stdio" | "http" {
 async function main() {
   const mode = getTransport();
   if (mode === "http") {
+    const PORT = process.env.PORT || 3000;
+    const HOST = "0.0.0.0";
     const { runHttpServer } = await import("./server-http.js");
-    await runHttpServer();
+    await runHttpServer({ port: PORT, host: HOST });
   } else {
     const { runStdioServer } = await import("./server-stdio.js");
     await runStdioServer();
