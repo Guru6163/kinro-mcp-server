@@ -5,7 +5,8 @@
   "type": "module",
   "main": "build/index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test:tools": "npm run build && ts-node --esm scripts/test-tools.ts"
   },
   "engines": {
     "node": ">=18"
